@@ -1,0 +1,16 @@
+
+# VS / .NET
+bin/
+obj/
+**/*.user
+**/*.suo
+**/*.userprefs
+*.sln.ide
+
+# Node
+node_modules/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
