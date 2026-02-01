@@ -3,6 +3,7 @@
   "version": 1,
   "projects": {
     "frontend": {
+      "root": "", 
       "projectType": "application",
       "sourceRoot": "src",
       "architect": {
