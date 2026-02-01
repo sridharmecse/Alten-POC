@@ -7,10 +7,6 @@ This repository contains a working microservices setup with:
 - **Frontend** (Angular, basic pages: product list, create/edit with image upload, place order, order history)
 - **Infrastructure**: Dockerfiles, `docker-compose.yml` (MSSQL + Azurite + services + frontend), Swagger, Serilog, centralized exception handling
 
-> Built to match the attached assignment requirements (two microservices, Azure Blob image upload, EF Core, Docker, Swagger, tests, GitHub push). citeturn1search1
-
----
-
 ## Quick Start (Docker)
 
 > Prerequisites: Docker Desktop (or Docker Engine + Docker Compose). Ports used: `8080` (Product API), `8081` (Order API), `4200` (Frontend), `14333` (SQL), `10000-10002` (Azurite).
@@ -29,10 +25,7 @@ http://localhost:8081/swagger
 http://localhost:4200/
 ```
 
-**Default credentials** for SQL Server (local containers only):
-- `SA_PASSWORD`: `Your_strong_password123!`
-
-> The solution uses **Azurite** (local Azure Storage emulator). Image uploads are sent to Azurite and the returned URLs are accessible via the Product Service. You can swap the connection string to real Azure Storage without code changes. citeturn1search1
+> The solution uses **Azurite** (local Azure Storage emulator). Image uploads are sent to Azurite and the returned URLs are accessible via the Product Service. You can swap the connection string to real Azure Storage without code changes.
 
 ---
 
@@ -44,8 +37,8 @@ http://localhost:4200/
    - `ProductDb`
    - `OrderDb`
 2. Update connection strings in:
-   - `backend/product-service/ProductService/appsettings.Development.json`
-   - `backend/order-service/OrderService/appsettings.Development.json`
+   - `backend/product-service/ProductService/appsettings.json`
+   - `backend/order-service/OrderService/appsettings.json`
 3. (Optional) Start **Azurite** locally:
    ```bash
    docker run -p 10000:10000 -p 10001:10001 -p 10002:10002 mcr.microsoft.com/azure-storage/azurite
@@ -101,22 +94,6 @@ Tests cover:
 
 ---
 
-## GitHub – Push Instructions
-
-```bash
-# From repo root
- git init
- git add .
- git commit -m "feat: initial microservices setup (.NET 8 + Angular + MSSQL + Azurite)"
- git branch -M main
- git remote add origin https://github.com/<YOUR_GITHUB_USERNAME>/<YOUR_REPO_NAME>.git
- git push -u origin main
-```
-
-> Replace `<YOUR_GITHUB_USERNAME>` and `<YOUR_REPO_NAME>` with your actual GitHub values. Enable GitHub Actions (optional) for CI.
-
----
-
 ## Services & Endpoints (Highlights)
 
 ### Product Service
@@ -125,7 +102,7 @@ Tests cover:
 - `POST /products` – create
 - `PUT /products/{id}` – update
 - `DELETE /products/{id}` – delete
-- `POST /products/{id}/image` – **upload product image** to Azure Blob (Azurite in dev), returns `imageUrl`. Container configurable in `appsettings`. citeturn1search1
+- `POST /products/{id}/image` – **upload product image** to Azure Blob (Azurite in dev), returns `imageUrl`. Container configurable in `appsettings`.
 
 ### Order Service
 - `POST /orders` – place order (validates product stock via Product Service)
@@ -148,54 +125,5 @@ Tests cover:
 
 ---
 
-## Assumptions & Tradeoffs
-
-- Blob deletes & SAS URLs are not enabled by default (kept simple), but code is structured for easy extension.
-- Concurrency on stock is simplistic for demo purposes.
-- Angular UI is intentionally basic to focus on correctness over styling. citeturn1search1
-
----
-
-## Project Structure
-
-```
-backend/
-  product-service/
-    ProductService/
-      Controllers/
-      Data/
-      Models/
-      Services/
-      Migrations/ (generated via CLI)
-      ProductService.csproj
-      Program.cs
-      appsettings.json
-      appsettings.Development.json
-      Dockerfile
-  order-service/
-    OrderService/
-      Controllers/
-      Data/
-      Models/
-      Services/
-      Migrations/ (generated via CLI)
-      OrderService.csproj
-      Program.cs
-      appsettings.json
-      appsettings.Development.json
-      Dockerfile
-    tests/
-      OrderService.Tests/
-        OrderService.Tests.csproj
-        OrderServiceTests.cs
-frontend/
-  src/ (... Angular app ...)
-  angular.json
-  package.json
-  tsconfig.json
-  Dockerfile
-  nginx.conf
-
-docker-compose.yml
 README.md
 ```
