@@ -12,15 +12,28 @@ services:
     volumes:
       - azurite-data:/data
 
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    container_name: mssql
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Welcome@123
+    ports:
+      - "14333:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+
   product-service:
     build: ./backend/product-service/ProductService
     container_name: product-service
     depends_on:
       azurite:
         condition: service_started
+      mssql:
+        condition: service_started
     environment:
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=host.docker.internal\SQLEXPRESS;Database=ProductsDB;Trusted_Connection=True;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=localhost\\SQLEXPRESS;Database=ProductDb;User=sa;Password=Welcome@123;TrustServerCertificate=True;
       - AzureBlob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;
       - AzureBlob__ContainerName=product-images
     ports:
@@ -32,9 +45,11 @@ services:
     depends_on:
       product-service:
         condition: service_started
+      mssql:
+        condition: service_started
     environment:
       - ASPNETCORE_URLS=http://+:8081
-      - ConnectionStrings__DefaultConnection=Server=host.docker.internal\SQLEXPRESS;Database=OrdersDB;Trusted_Connection=True;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=localhost\\SQLEXPRESS;Database=OrderDb;User=sa;Password=Welcome@123;TrustServerCertificate=True;
       - ProductService__BaseUrl=http://product-service:8080
     ports:
       - "8081:8081"
@@ -46,7 +61,8 @@ services:
       - product-service
       - order-service
     ports:
-      - "4200:80"
+      - "4200:4200"
 
 volumes:
   azurite-data:
+  mssql-data:
