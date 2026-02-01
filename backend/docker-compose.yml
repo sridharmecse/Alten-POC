@@ -1,21 +1,6 @@
+version: '3.8'
 
 services:
-  mssql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: mssql
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Your_strong_password123!
-    ports:
-      - "14333:1433"
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P 'Your_strong_password123!' -Q 'SELECT 1' || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-    volumes:
-      - mssql-data:/var/opt/mssql
-
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:3.31.0
     container_name: azurite
@@ -31,13 +16,11 @@ services:
     build: ./backend/product-service/ProductService
     container_name: product-service
     depends_on:
-      mssql:
-        condition: service_healthy
       azurite:
         condition: service_started
     environment:
       - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=mssql;Database=ProductDb;User Id=SA;Password=Your_strong_password123!;TrustServerCertificate=True
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal\SQLEXPRESS;Database=ProductsDB;Trusted_Connection=True;TrustServerCertificate=True;
       - AzureBlob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;
       - AzureBlob__ContainerName=product-images
     ports:
@@ -47,13 +30,11 @@ services:
     build: ./backend/order-service/OrderService
     container_name: order-service
     depends_on:
-      mssql:
-        condition: service_healthy
       product-service:
         condition: service_started
     environment:
       - ASPNETCORE_URLS=http://+:8081
-      - ConnectionStrings__DefaultConnection=Server=localhost\SQLEXPRESS;Database=TutorialDB;Trusted_Connection=True;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=host.docker.internal\SQLEXPRESS;Database=OrdersDB;Trusted_Connection=True;TrustServerCertificate=True;
       - ProductService__BaseUrl=http://product-service:8080
     ports:
       - "8081:8081"
@@ -68,5 +49,4 @@ services:
       - "4200:80"
 
 volumes:
-  mssql-data:
   azurite-data:
