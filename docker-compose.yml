@@ -1,10 +1,14 @@
-version: '3.8'
+version: "3.8"
 
 services:
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite:3.31.0
     container_name: azurite
-    command: "azurite --blobHost 0.0.0.0 --queueHost 0.0.0.0 --tableHost 0.0.0.0"
+    command: >
+      azurite
+      --blobHost 0.0.0.0
+      --queueHost 0.0.0.0
+      --tableHost 0.0.0.0
     ports:
       - "10000:10000"
       - "10001:10001"
@@ -16,8 +20,8 @@ services:
     image: mcr.microsoft.com/mssql/server:2025-latest
     container_name: mssql
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=Welcome@123
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "Welcome@123"
     ports:
       - "14333:1433"
     volumes:
@@ -27,15 +31,24 @@ services:
     build: ./backend/product-service/ProductService
     container_name: product-service
     depends_on:
-      azurite:
-        condition: service_started
-      mssql:
-        condition: service_started
+      - azurite
+      - mssql
     environment:
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=localhost\\SQLEXPRESS;Database=ProductDb;User=sa;Password=Welcome@123;TrustServerCertificate=True;
-      - AzureBlob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;QueueEndpoint=http://azurite:10001/devstoreaccount1;TableEndpoint=http://azurite:10002/devstoreaccount1;
-      - AzureBlob__ContainerName=product-images
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: >
+        Server=mssql,1433;
+        Database=ProductDb;
+        User Id=sa;
+        Password=Welcome@123;
+        TrustServerCertificate=True;
+      AzureBlob__ConnectionString: >
+        DefaultEndpointsProtocol=http;
+        AccountName=devstoreaccount1;
+        AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;
+        BlobEndpoint=http://azurite:10000/devstoreaccount1;
+        QueueEndpoint=http://azurite:10001/devstoreaccount1;
+        TableEndpoint=http://azurite:10002/devstoreaccount1;
+      AzureBlob__ContainerName: product-images
     ports:
       - "8080:8080"
 
@@ -43,14 +56,17 @@ services:
     build: ./backend/order-service/OrderService
     container_name: order-service
     depends_on:
-      product-service:
-        condition: service_started
-      mssql:
-        condition: service_started
+      - product-service
+      - mssql
     environment:
-      - ASPNETCORE_URLS=http://+:8081
-      - ConnectionStrings__DefaultConnection=Server=localhost\\SQLEXPRESS;Database=OrderDb;User=sa;Password=Welcome@123;TrustServerCertificate=True;
-      - ProductService__BaseUrl=http://product-service:8080
+      ASPNETCORE_URLS: http://+:8081
+      ConnectionStrings__DefaultConnection: >
+        Server=mssql,1433;
+        Database=OrderDb;
+        User Id=sa;
+        Password=Welcome@123;
+        TrustServerCertificate=True;
+      ProductService__BaseUrl: http://product-service:8080
     ports:
       - "8081:8081"
 
